@@ -1,34 +1,31 @@
 import requests
+from requests.auth import HTTPBasicAuth
 import os
 from dotenv import load_dotenv
 from datetime import datetime
 
 load_dotenv()
 
-# Details
-GENDER = "male"
-WEIGHT = 88.45
-HEIGHT = 180.34
-AGE = 35
 
 
 NUTRITIONIX_URL = "https://trackapi.nutritionix.com/v2"
 SHEETY_URL = "https://api.sheety.co"
 
-
-USERNAME = "cd80ca037dfac9a238904d4dd1642daa"
-PROJECT_NAME = "pythonMyWorkouts"
-SHEET_NAME = "workouts"
-
 natural_lang_exercise_endpoint = f"{NUTRITIONIX_URL}/natural/exercise"
-sheety_post_endpoint = f"{SHEETY_URL}/{USERNAME}/{PROJECT_NAME}/{SHEET_NAME}"
+sheety_post_endpoint = f"{SHEETY_URL}/{os.environ.get('SHEETY_ENDPOINT')}"
 
 
+# Details
+GENDER = "male"
+WEIGHT = 88.45
+HEIGHT = 180.34
+AGE = 35
 exercise_query = input("Tell me what exercise you did: ")
 
 headers = {
     "x-app-id": os.environ.get("APP_ID"),
-    "x-app-key": os.environ.get("APP_KEY")
+    "x-app-key": os.environ.get("APP_KEY"),
+    "Authorization": f"Basic {os.environ.get('TOKEN')}"
 }
 
 nutrx_params = {
@@ -60,8 +57,11 @@ for exercise in nutrix_exercise_data:
             "calories": exercise["nf_calories"]
         }
     }
+    basic = HTTPBasicAuth(os.environ.get('SHEETY_USERNAME'), os.environ.get('SHEETY_PASSWORD'))
 
-    sheety_response = requests.post(url=sheety_post_endpoint, json=sheet_params)
+    sheety_response = requests.post(url=sheety_post_endpoint,
+                                    json=sheet_params,
+                                    auth=basic)
     sheety_response.raise_for_status()
 
 print(sheety_response.text)
